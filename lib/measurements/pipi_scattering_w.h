@@ -50,8 +50,10 @@ namespace Chroma
             {
                 //std::string  gauge_id;     //Grab the usual gauge field.
                 // std::string  quark_prop_1;
-                std::string  light_prop;
-                bool have_light_prop;
+                std::string  up_prop;
+                bool have_up_prop;
+                std::string  down_prop;
+                bool have_down_prop;
                 std::string  strange_prop;
                 bool have_strange_prop;
                 //Above are various strings and bools that will identify the quarks and which quarks are present in the input.

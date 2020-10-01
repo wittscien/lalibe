@@ -12,11 +12,25 @@
   <Name>HDF5_READ_NAMED_OBJECT</Name>
   <Frequency>1</Frequency>
   <NamedObject>
-    <object_id>PS_prop_light</object_id>
+    <object_id>PS_prop_up</object_id>
     <object_type>LatticePropagator</object_type>
   </NamedObject>
   <File>
-    <file_name>./light0100_0.05.h5</file_name>
+    <file_name>./up0100_0.05.h5</file_name>
+    <path>/sh_sig2p0_n5</path>
+    <obj_name>PS_prop</obj_name>
+  </File>
+</elem>
+
+<elem>
+  <Name>HDF5_READ_NAMED_OBJECT</Name>
+  <Frequency>1</Frequency>
+  <NamedObject>
+    <object_id>PS_prop_down</object_id>
+    <object_type>LatticePropagator</object_type>
+  </NamedObject>
+  <File>
+    <file_name>./down0100_0.05.h5</file_name>
     <path>/sh_sig2p0_n5</path>
     <obj_name>PS_prop</obj_name>
   </File>
@@ -47,7 +61,8 @@
     <obj_path>/PS</obj_path>
   </PipiParams>
   <NamedObject>
-    <light_prop>PS_prop_light</light_prop>
+    <up_prop>PS_prop_up</up_prop>
+    <down_prop>PS_prop_down</down_prop>
     <strange_prop>PS_prop_strange</strange_prop>
   </NamedObject>
 </elem>

@@ -70,16 +70,27 @@ namespace Chroma
 
             //Logic to read quark propagators (whichever ones are present.)
 
-            if (inputtop.count("light_prop") != 0)
+            if (inputtop.count("up_prop") != 0)
             {
-                read(inputtop, "light_prop", input.light_prop);
-                QDPIO::cout << "I found the light quark propagator, here is its id: " << input.light_prop << std::endl;
-                input.have_light_prop = true;
+                read(inputtop, "up_prop", input.up_prop);
+                QDPIO::cout << "I found the up quark propagator, here is its id: " << input.up_prop << std::endl;
+                input.have_up_prop = true;
             }
             else
             {
-                QDPIO::cout << "I couldn't find the light quark, this is absurd, go change your xml. " << std::endl;
-                input.have_light_prop = false;
+                QDPIO::cout << "I couldn't find the up quark, this is absurd, go change your xml. " << std::endl;
+                input.have_up_prop = false;
+            }
+            if (inputtop.count("down_prop") != 0)
+            {
+                read(inputtop, "down_prop", input.down_prop);
+                QDPIO::cout << "I found the down quark propagator, here is its id: " << input.down_prop << std::endl;
+                input.have_down_prop = true;
+            }
+            else
+            {
+                QDPIO::cout << "I couldn't find the down quark. " << std::endl;
+                input.have_down_prop = false;
             }
             if (inputtop.count("strange_prop") != 0)
             {
@@ -140,8 +151,10 @@ namespace Chroma
             QDPIO::cout << "Pipi scattering starting..." << std::endl;
 
             //Grab all the propagators that are given.
-            XMLReader light_prop_file_xml, light_prop_record_xml;
-            LatticePropagator light_quark_propagator;
+            XMLReader up_prop_file_xml, up_prop_record_xml;
+            LatticePropagator up_quark_propagator;
+            XMLReader down_prop_file_xml, down_prop_record_xml;
+            LatticePropagator down_quark_propagator;
             XMLReader strange_prop_file_xml, strange_prop_record_xml;
             LatticePropagator strange_quark_propagator;
 
@@ -151,25 +164,25 @@ namespace Chroma
             int t_0;
             multi1d<int> origin(4);
 
-            if (params.named_obj.have_light_prop == true)
+            if (params.named_obj.have_up_prop == true)
             {
-                QDPIO::cout << "Attempting to read the light propagator" << std::endl;
+                QDPIO::cout << "Attempting to read the up propagator" << std::endl;
                 try
                 {
-                    light_quark_propagator = TheNamedObjMap::Instance().getData<LatticePropagator>(params.named_obj.light_prop);
-                    TheNamedObjMap::Instance().get(params.named_obj.light_prop).getFileXML(light_prop_file_xml);
-                    TheNamedObjMap::Instance().get(params.named_obj.light_prop).getRecordXML(light_prop_record_xml);
+                    up_quark_propagator = TheNamedObjMap::Instance().getData<LatticePropagator>(params.named_obj.up_prop);
+                    TheNamedObjMap::Instance().get(params.named_obj.up_prop).getFileXML(up_prop_file_xml);
+                    TheNamedObjMap::Instance().get(params.named_obj.up_prop).getRecordXML(up_prop_record_xml);
                     //Get the origin  and j_decay for the FT, this assumes all quarks have the same origin.
                     MakeSourceProp_t  orig_header;
-                    if (light_prop_record_xml.count("/Propagator") != 0)
+                    if (up_prop_record_xml.count("/Propagator") != 0)
                     {
-                        QDPIO::cout << "The light quark propagator is unsmeared, reading from Propagator tag..." << std::endl;
-                        read(light_prop_record_xml, "/Propagator", orig_header);
+                        QDPIO::cout << "The up quark propagator is unsmeared, reading from Propagator tag..." << std::endl;
+                        read(up_prop_record_xml, "/Propagator", orig_header);
                     }
-                    else if (light_prop_record_xml.count("/SinkSmear") != 0)
+                    else if (up_prop_record_xml.count("/SinkSmear") != 0)
                     {
-                        QDPIO::cout << "The light quark propagator is smeared, reading from SinkSmear tag..." << std::endl;
-                        read(light_prop_record_xml, "/SinkSmear", orig_header);
+                        QDPIO::cout << "The up quark propagator is smeared, reading from SinkSmear tag..." << std::endl;
+                        read(up_prop_record_xml, "/SinkSmear", orig_header);
                     }
                     else
                     {
@@ -179,6 +192,51 @@ namespace Chroma
                     j_decay = orig_header.source_header.j_decay;
                     t_0 = orig_header.source_header.t_source;
                     origin = orig_header.source_header.getTSrce();
+                }
+                catch (std::bad_cast)
+                {
+                    QDPIO::cerr << name << ": caught dynamic cast error" << std::endl;
+                    QDP_abort(1);
+                }
+                catch (const std::string& e)
+                {
+                    QDPIO::cerr << name << ": error reading src prop_header: "
+                        << e << std::endl;
+                    QDP_abort(1);
+                }
+            }
+
+            if (params.named_obj.have_down_prop == true)
+            {
+                QDPIO::cout << "Attempting to read the down propagator" << std::endl;
+                try
+                {
+                    down_quark_propagator = TheNamedObjMap::Instance().getData<LatticePropagator>(params.named_obj.down_prop);
+                    TheNamedObjMap::Instance().get(params.named_obj.down_prop).getFileXML(down_prop_file_xml);
+                    TheNamedObjMap::Instance().get(params.named_obj.down_prop).getRecordXML(down_prop_record_xml);
+                    //Get the origin  and j_decay for the FT, this assumes all quarks have the same origin.
+                    MakeSourceProp_t  orig_header;
+                    if (down_prop_record_xml.count("/Propagator") != 0)
+                    {
+                        QDPIO::cout << "The down quark propagator is unsmeared, reading from Propagator tag..." << std::endl;
+                        read(down_prop_record_xml, "/Propagator", orig_header);
+                    }
+                    else if (down_prop_record_xml.count("/SinkSmear") != 0)
+                    {
+                        QDPIO::cout << "The down quark propagator is smeared, reading from SinkSmear tag..." << std::endl;
+                        read(down_prop_record_xml, "/SinkSmear", orig_header);
+                    }
+                    else
+                    {
+                        QDPIO::cout << "What type of weird propagator did you give me? I can't find the right tag to get j_decay, source location, and whatnot...exiting..." << std::endl;
+                    }
+
+                    j_decay = orig_header.source_header.j_decay;
+                    t_0 = orig_header.source_header.t_source;
+                    if (orig_header.source_header.getTSrce() != origin)
+                    {
+                        QDPIO::cout << "The origin of the up and down propagators are different, go change your propagators." << std::endl;
+                    }
                 }
                 catch (std::bad_cast)
                 {
@@ -222,7 +280,7 @@ namespace Chroma
                     t_0 = orig_header.source_header.t_source;
                     if (orig_header.source_header.getTSrce() != origin)
                     {
-                        QDPIO::cout << "The origin of the light and strange propagators are different, go change your propagators." << std::endl;
+                        QDPIO::cout << "The origin of the up and strange propagators are different, go change your propagators." << std::endl;
                     }
                 }
                 catch (std::bad_cast)
@@ -252,53 +310,90 @@ namespace Chroma
 
             std::map<std::string, CorrelatorType::Correlator> correlators;
 
-            if (params.named_obj.have_light_prop == true && params.named_obj.have_strange_prop == false)
+            if (params.named_obj.have_up_prop == true && params.named_obj.have_strange_prop == false)
             {
                 if (params.param.diagrams == 1)
                 {
-                    pipi_correlator(correlators["pipi_diagram0"], light_quark_propagator, light_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 0);
-                    pipi_correlator(correlators["pipi_diagram1"], light_quark_propagator, light_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 1);
-                    pipi_correlator(correlators["pipi_diagram2"], light_quark_propagator, light_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 2);
-                    pipi_correlator(correlators["pipi_diagram3"], light_quark_propagator, light_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 3);
-                    pipi_correlator(correlators["pipi_diagram4"], light_quark_propagator, light_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 4);
+                    pipi_correlator(correlators["pipi_diagram0"], up_quark_propagator, up_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 0);
+                    pipi_correlator(correlators["pipi_diagram1"], up_quark_propagator, up_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 1);
+                    pipi_correlator(correlators["pipi_diagram2"], up_quark_propagator, up_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 2);
+                    pipi_correlator(correlators["pipi_diagram3"], up_quark_propagator, up_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 3);
+                    pipi_correlator(correlators["pipi_diagram4"], up_quark_propagator, up_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 4);
                 }
                 else
-                    pipi_correlator(correlators["pipi"], light_quark_propagator, light_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 0);
+                    pipi_correlator(correlators["pipi"], up_quark_propagator, up_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 0);
             }
-            else if (params.named_obj.have_light_prop == true && params.named_obj.have_strange_prop == true)
+            else if (params.named_obj.have_up_prop == true && params.named_obj.have_strange_prop == true && params.named_obj.have_down_prop == false)
             {
                 if (params.param.diagrams == 1)
                 {
-                    pipi_correlator(correlators["pipi_diagram0"], light_quark_propagator, light_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 0);
-                    pipi_correlator(correlators["pipi_diagram1"], light_quark_propagator, light_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 1);
-                    pipi_correlator(correlators["pipi_diagram2"], light_quark_propagator, light_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 2);
-                    pipi_correlator(correlators["pipi_diagram3"], light_quark_propagator, light_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 3);
-                    pipi_correlator(correlators["pipi_diagram4"], light_quark_propagator, light_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 4);
+                    pipi_correlator(correlators["pipi_diagram0"], up_quark_propagator, up_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 0);
+                    pipi_correlator(correlators["pipi_diagram1"], up_quark_propagator, up_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 1);
+                    pipi_correlator(correlators["pipi_diagram2"], up_quark_propagator, up_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 2);
+                    pipi_correlator(correlators["pipi_diagram3"], up_quark_propagator, up_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 3);
+                    pipi_correlator(correlators["pipi_diagram4"], up_quark_propagator, up_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 4);
 
-                    pipi_correlator(correlators["kk_diagram0"], light_quark_propagator, strange_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 0);
-                    pipi_correlator(correlators["kk_diagram1"], light_quark_propagator, strange_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 1);
-                    pipi_correlator(correlators["kk_diagram2"], light_quark_propagator, strange_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 2);
-                    pipi_correlator(correlators["kk_diagram3"], light_quark_propagator, strange_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 3);
-                    pipi_correlator(correlators["kk_diagram4"], light_quark_propagator, strange_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 4);
+                    pipi_correlator(correlators["kk_diagram0"], up_quark_propagator, strange_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 0);
+                    pipi_correlator(correlators["kk_diagram1"], up_quark_propagator, strange_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 1);
+                    pipi_correlator(correlators["kk_diagram2"], up_quark_propagator, strange_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 2);
+                    pipi_correlator(correlators["kk_diagram3"], up_quark_propagator, strange_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 3);
+                    pipi_correlator(correlators["kk_diagram4"], up_quark_propagator, strange_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 4);
 
-                    pik_correlator(correlators["pik_diagram0"], light_quark_propagator, strange_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 0);
-                    pik_correlator(correlators["pik_diagram1"], light_quark_propagator, strange_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 1);
-                    pik_correlator(correlators["pik_diagram2"], light_quark_propagator, strange_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 2);
+                    pik_correlator(correlators["pik_diagram0"], up_quark_propagator, strange_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 0);
+                    pik_correlator(correlators["pik_diagram1"], up_quark_propagator, strange_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 1);
+                    pik_correlator(correlators["pik_diagram2"], up_quark_propagator, strange_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 2);
                 }
                 else
                 {
-                    pipi_correlator(correlators["pipi"], light_quark_propagator, light_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 0);
+                    pipi_correlator(correlators["pipi"], up_quark_propagator, up_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 0);
 
-                    pipi_correlator(correlators["kk"], light_quark_propagator, strange_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 0);
+                    pipi_correlator(correlators["kk"], up_quark_propagator, strange_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 0);
 
-                    pik_correlator(correlators["pik"], light_quark_propagator, strange_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 0);
+                    pik_correlator(correlators["pik"], up_quark_propagator, strange_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 0);
+                }
+            }
+            else if (params.named_obj.have_up_prop == true && params.named_obj.have_strange_prop == true && params.named_obj.have_down_prop == true)
+            {
+                if (params.param.diagrams == 1)
+                {
+                    pipi_correlator(correlators["pipi_diagram0"], up_quark_propagator, down_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 0);
+                    pipi_correlator(correlators["pipi_diagram1"], up_quark_propagator, down_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 1);
+                    pipi_correlator(correlators["pipi_diagram2"], up_quark_propagator, down_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 2);
+                    pipi_correlator(correlators["pipi_diagram3"], up_quark_propagator, down_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 3);
+                    pipi_correlator(correlators["pipi_diagram4"], up_quark_propagator, down_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 4);
+
+                    pipi_correlator(correlators["kpkp_diagram0"], up_quark_propagator, strange_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 0);
+                    pipi_correlator(correlators["kpkp_diagram1"], up_quark_propagator, strange_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 1);
+                    pipi_correlator(correlators["kpkp_diagram2"], up_quark_propagator, strange_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 2);
+                    pipi_correlator(correlators["kpkp_diagram3"], up_quark_propagator, strange_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 3);
+                    pipi_correlator(correlators["kpkp_diagram4"], up_quark_propagator, strange_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 4);
+
+                    pipi_correlator(correlators["k0k0_diagram0"], down_quark_propagator, strange_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 0);
+                    pipi_correlator(correlators["k0k0_diagram1"], down_quark_propagator, strange_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 1);
+                    pipi_correlator(correlators["k0k0_diagram2"], down_quark_propagator, strange_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 2);
+                    pipi_correlator(correlators["k0k0_diagram3"], down_quark_propagator, strange_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 3);
+                    pipi_correlator(correlators["k0k0_diagram4"], down_quark_propagator, strange_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 4);
+
+                    pikQED_correlator(correlators["pik_diagram0"], up_quark_propagator, strange_quark_propagator, down_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 0);
+                    pikQED_correlator(correlators["pik_diagram1"], up_quark_propagator, strange_quark_propagator, down_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 1);
+                    pikQED_correlator(correlators["pik_diagram2"], up_quark_propagator, strange_quark_propagator, down_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 2);
+                }
+                else
+                {
+                    pipi_correlator(correlators["pipi"], up_quark_propagator, down_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 0);
+
+                    pipi_correlator(correlators["kpkp"], up_quark_propagator, strange_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 0);
+
+                    pipi_correlator(correlators["k0k0"], down_quark_propagator, strange_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 0);
+
+                    pikQED_correlator(correlators["pik"], up_quark_propagator, strange_quark_propagator, down_quark_propagator, origin, params.param.p2_max, params.param.ptot2_max, t_0, j_decay, 0);
                 }
             }
 
             QDPIO::cout << "Calculation finished. Starting to write HDF5..." << std::endl;
 
             if (params.param.diagrams == 1)
-                QDPIO::cout << "I will print separate diagrams" << std::endl;
+                QDPIO::cout << "I will print separate diagrams." << std::endl;
 
             // Write out the correlator.
 
@@ -317,6 +412,16 @@ namespace Chroma
                 {
                   number_start = 3;
                   collision_type = "kk";
+                }
+                else if (particles[1] == 'p')
+                {
+                  number_start = 5;
+                  collision_type = "kpkp";
+                }
+                else if (particles[1] == '0')
+                {
+                  number_start = 5;
+                  collision_type = "k0k0";
                 }
                 else if (particles[2] == 'p')
                 {
